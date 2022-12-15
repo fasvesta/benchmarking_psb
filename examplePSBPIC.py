@@ -1,0 +1,121 @@
+import numpy as np
+from cpymad.madx import Madx
+import xtrack as xt
+import xpart as xp
+from statisticalEmittance import *
+# import json
+import xobjects as xo
+import xfields as xf
+
+####################
+# Choose a context #
+####################
+
+context = xo.ContextCpu()
+#context = xo.ContextCupy()
+#context = xo.ContextPyopencl('0.0')
+
+print(context)
+
+mad = Madx()
+mad.call('PSB/madx/psb_injection_example.madx')
+
+line= xt.Line.from_madx_sequence(mad.sequence['psb'])
+line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
+                               gamma0=mad.sequence.psb.beam.gamma)
+
+nemitt_x=3e-6
+nemitt_y=2.3e-6
+bunch_intensity=55e10
+sigma_z=16.9
+n_part = int(200e3)
+
+# from space charge example
+num_turns= int(150e3)
+
+num_spacecharge_interactions = 160 # is this interactions per turn?
+tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
+
+# Available modes: frozen/quasi-frozen/pic
+mode = 'pic'#'frozen'
+
+#############################################
+# Install spacecharge interactions (frozen) #
+#############################################
+
+lprofile = xf.LongitudinalProfileQGaussian(
+        number_of_particles=bunch_intensity,
+        sigma_z=sigma_z,
+        z0=0.,
+        q_parameter=1.)
+
+xf.install_spacecharge_frozen(line=line,
+                   particle_ref=line.particle_ref,
+                   longitudinal_profile=lprofile,
+                   nemitt_x=nemitt_x, nemitt_y=nemitt_y,
+                   sigma_z=sigma_z,
+                   num_spacecharge_interactions=num_spacecharge_interactions,
+                   tol_spacecharge_position=tol_spacecharge_position)
+
+#################################
+# Switch to PIC or quasi-frozen #
+#################################
+
+if mode == 'frozen':
+    pass # Already configured in line
+elif mode == 'quasi-frozen':
+    xf.replace_spacecharge_with_quasi_frozen(
+                                    line,
+                                    update_mean_x_on_track=True,
+                                    update_mean_y_on_track=True)
+elif mode == 'pic':
+    pic_collection, all_pics = xf.replace_spacecharge_with_PIC(
+        _context=context, line=line,
+        n_sigmas_range_pic_x=8,
+        n_sigmas_range_pic_y=8,
+        nx_grid=128, ny_grid=128, nz_grid=64,
+        n_lims_x=7, n_lims_y=3,
+        z_range=(-3*sigma_z, 3*sigma_z))
+else:
+    raise ValueError(f'Invalid mode: {mode}')
+
+#################
+# Build Tracker #
+#################
+
+tracker = xt.Tracker(_context=context,
+                    line=line)
+tracker_sc_off = tracker.filter_elements(exclude_types_starting_with='SpaceCh')
+
+######################
+# Generate particles #
+######################
+
+particles = xp.generate_matched_gaussian_bunch(_context=context, num_particles=n_part,
+                            total_intensity_particles=bunch_intensity,
+                            nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker_sc_off)
+
+monitor = xt.ParticlesMonitor(_context=context,
+                              start_at_turn=0, stop_at_turn=1,
+                              n_repetitions=2,
+                              repetition_period=500,
+                              num_particles=n_part)
+
+
+
+r=StatisticalEmittance()
+bunch_moments=r.measure_bunch_moments(particles)
+print(bunch_moments['nemitt_x'])
+print(bunch_moments['nemitt_y'])
+tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
+bunch_moments=r.measure_bunch_moments(particles)
+print(bunch_moments['nemitt_x'])
+print(bunch_moments['nemitt_y'])
+# np.save('x',tracker.record_last_track.x)
+# np.save('px',tracker.record_last_track.px)
+# np.save('y',tracker.record_last_track.y)
+# np.save('py',tracker.record_last_track.py)
+# np.save('z',tracker.record_last_track.zeta)
+# np.save('d',tracker.record_last_track.delta)
