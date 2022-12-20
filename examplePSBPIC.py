@@ -28,10 +28,10 @@ nemitt_x=3e-6
 nemitt_y=2.3e-6
 bunch_intensity=55e10
 sigma_z=16.9
-n_part = int(200e3)
+n_part = int(20e3)
 
 # from space charge example
-num_turns= int(150e3)
+num_turns= int(10)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
 tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
@@ -109,7 +109,14 @@ r=StatisticalEmittance()
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
-tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
+#tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
+output=[]
+for i in range(num_turns):
+    tracker.track(particles)
+    bunch_moments=r.measure_bunch_moments(particles)
+    output.append([len(r.coordinate_matrix[0]),bunch_moments['nemitt_x'].tolist(),bunch_moments['nemitt_y'].tolist()])
+ouput=np.array(output)                                                                                  
+np.save('emittances', output)      
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
