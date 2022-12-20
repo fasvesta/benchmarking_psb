@@ -31,7 +31,7 @@ sigma_z=16.9
 n_part = int(20e3)
 
 # from space charge example
-num_turns= int(1)
+num_turns= int(150e3)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
 tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
