@@ -31,7 +31,7 @@ sigma_z=16.9
 n_part = int(20e3)
 
 # from space charge example
-num_turns= int(10)
+num_turns= int(150e3)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
 tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
@@ -103,9 +103,7 @@ monitor = xt.ParticlesMonitor(_context=context,
                               repetition_period=500,
                               num_particles=n_part)
 
-
-
-r=StatisticalEmittance()
+r=StatisticalEmittance(context='GPU')
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
@@ -115,14 +113,13 @@ for i in range(num_turns):
     tracker.track(particles)
     bunch_moments=r.measure_bunch_moments(particles)
     output.append([len(r.coordinate_matrix[0]),bunch_moments['nemitt_x'].tolist(),bunch_moments['nemitt_y'].tolist()])
+    if i %1000==0:
+        if r.context=='GPU':
+            np.save('output/distribution_'+str(int(i)), r.coordinate_matrix.get())
+        else:
+            np.save('output/distribution_'+str(int(i)), r.coordinate_matrix)
 ouput=np.array(output)                                                                                  
-np.save('emittances', output)      
+np.save('output/emittances', output)      
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
-# np.save('x',tracker.record_last_track.x)
-# np.save('px',tracker.record_last_track.px)
-# np.save('y',tracker.record_last_track.y)
-# np.save('py',tracker.record_last_track.py)
-# np.save('z',tracker.record_last_track.zeta)
-# np.save('d',tracker.record_last_track.delta)
