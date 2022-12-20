@@ -176,7 +176,6 @@ class StatisticalEmittance(object):
             self.calculate_emittance()
         self.calculate_twiss_functions()
         self.bunch_moments={'nemitt_x': self.emitt_x*self.beta0*self.gamma0, 'nemitt_y': self.emitt_y*self.beta0*self.gamma0, 
-                            'emitt_z': self.emitt_z,
                             'betx': self.betx, 'bety': self.bety, 
                             'alfx': self.alfx , 'alfy': self.alfy,
                             'gamx': self.gamx , 'gamy': self.gamy,
