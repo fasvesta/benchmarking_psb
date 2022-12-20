@@ -141,7 +141,7 @@ class StatisticalEmittance(object):
             self.emitt_y=self.np.sqrt(abs(self.np.linalg.det(self.y_matrix)))
         if fourD:
             x_y_matrix=self.np.array([[self.correlation(0,2, betatronic=True),self.correlation(0,3, betatronic=True)],[self.correlation(1,2, betatronic=True),self.correlation(1,3, betatronic=True)]])
-            full_matrix=self.np.append(self.np.append(self.x_matrix,x_y_matrix,axis=1),cp.append(x_y_matrix.T,self.y_matrix,axis=1),axis=0)
+            full_matrix=self.np.append(self.np.append(self.x_matrix,x_y_matrix,axis=1),self.np.append(x_y_matrix.T,self.y_matrix,axis=1),axis=0)
             self.emitt_4d=self.np.sqrt(self.np.linalg.det(full_matrix))
 
     def calculate_coupling_factor(self):
@@ -176,6 +176,7 @@ class StatisticalEmittance(object):
             self.calculate_emittance()
         self.calculate_twiss_functions()
         self.bunch_moments={'nemitt_x': self.emitt_x*self.beta0*self.gamma0, 'nemitt_y': self.emitt_y*self.beta0*self.gamma0, 
+                            'emitt_z': self.emitt_z,
                             'betx': self.betx, 'bety': self.bety, 
                             'alfx': self.alfx , 'alfy': self.alfy,
                             'gamx': self.gamx , 'gamy': self.gamy,
