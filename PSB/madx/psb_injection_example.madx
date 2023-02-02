@@ -153,6 +153,7 @@ ENDMATCH;
 
 
 !kBR1QNO816L1=  2*3.094e-4;
+!kBR1XSK6L4= -25.5*0.005845;
 
 select, flag=twiss, clear;
 select, flag=twiss, column=name, s,betx,bety,disp;

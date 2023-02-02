@@ -91,6 +91,7 @@ P06ring1: SEQUENCE, REFER = centre, L  = 9.8175; !Ring 1, Period 06
  BR.BHZ61                           , AT = 3.4628495    , SLOT_ID = 2459088;
  BR.QFO61                           , AT = 4.889797     , SLOT_ID = 2459092;
  BR.QDE6                            , AT = 6.234797     , SLOT_ID = 2459110;
+ BR1.XSK6L4          : XSK_0        , AT = 7.001811     , SLOT_ID = 2459114, ASSEMBLY_ID = 2452469; 
  BR.QFO62                           , AT = 7.580797     , SLOT_ID = 2459093;
  BR.BHZ62                           , AT = 9.0086525    , SLOT_ID = 2459089;
 ENDSEQUENCE;
