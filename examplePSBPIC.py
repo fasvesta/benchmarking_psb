@@ -12,8 +12,8 @@ from parabolic_longitudinal_distribution import parabolic_longitudinal_distribut
 # Choose a context #
 ####################
 
-#context = xo.ContextCpu()
-context = xo.ContextCupy()
+context = xo.ContextCpu()
+#context = xo.ContextCupy()
 #context = xo.ContextPyopencl('0.0')
 
 print(context)
@@ -35,7 +35,7 @@ n_part = int(20e3)
 num_turns= int(150e3)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
-ol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
+tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
 
 # Available modes: frozen/quasi-frozen/pic
 mode = 'pic'#'frozen'
@@ -117,7 +117,7 @@ print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
 #tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 output=[]
-
+'''
 for i in range(num_turns):
     tracker.track(particles)
     bunch_moments=r.measure_bunch_moments(particles)
@@ -132,3 +132,4 @@ np.save('output/emittances', output)
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
+'''
