@@ -9,6 +9,6 @@ cp -r /afs/cern.ch/work/f/fasvesta/benchmarking_psb/PSB .
 cp /afs/cern.ch/work/f/fasvesta/benchmarking_psb/*.py .
 mkdir output
 
-python examplePSBPIC.py
+python examplePSBPIC.py 524
 mkdir /eos/user/f/fasvesta/benchmarking_psb/output_524
 xrdcp output/* root://eosuser.cern.ch//eos/user/f/fasvesta/benchmarking_psb/output_524/.

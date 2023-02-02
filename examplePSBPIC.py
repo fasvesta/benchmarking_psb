@@ -7,6 +7,8 @@ from statisticalEmittance import *
 import xobjects as xo
 import xfields as xf
 from parabolic_longitudinal_distribution import parabolic_longitudinal_distribution
+import sys
+import time
 
 ####################
 # Choose a context #
@@ -17,6 +19,9 @@ context = xo.ContextCupy()
 #context = xo.ContextPyopencl('0.0')
 
 print(context)
+
+with open('PSB/madx/tune.madx', 'w') as f:
+    f.write('Qy=4.'+str(sys.argv[1])+';')   
 
 mad = Madx()
 mad.call('PSB/madx/psb_injection_example.madx')
@@ -115,20 +120,23 @@ r=StatisticalEmittance(context='CPU')
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
-#tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 output=[]
-
+start = time.time()
+#tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 for i in range(num_turns):
     tracker.track(particles)
     bunch_moments=r.measure_bunch_moments(particles)
-    output.append([len(r.coordinate_matrix[0]),bunch_moments['nemitt_x'].tolist(),bunch_moments['nemitt_y'].tolist()])
-    if i %1000==0:
+    output.append([len(r.coordinate_matrix[0]),bunch_moments['nemitt_x'].tolist(),bunch_moments['nemitt_y'].tolist(),bunch_moments['emitt_z'].tolist()])
+    if i in range(-1, num_turns, 1000):
         if r.context=='GPU':
             np.save('output/distribution_'+str(int(i)), r.coordinate_matrix.get())
         else:
             np.save('output/distribution_'+str(int(i)), r.coordinate_matrix)
-ouput=np.array(output)                                                                                  
-np.save('output/emittances', output)      
+end = time.time()
 bunch_moments=r.measure_bunch_moments(particles)
-print(bunch_moments['nemitt_x'])
-print(bunch_moments['nemitt_y'])
+print('epsn_x = ',bunch_moments['nemitt_x'])
+print('epsn_y = ',bunch_moments['nemitt_y'])
+print('eps_z = ',bunch_moments['emitt_z'])
+print('time = ', end - start)
+ouput=np.array(output)
+np.save('output/emittances', output)

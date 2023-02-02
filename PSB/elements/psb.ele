@@ -99,6 +99,7 @@ ACWFB     : RFCAVITY    , L := 0;         ! Acceleration Cavity Wideband Finemet
 XNOH0     : SEXTUPOLE   , L := 0;         ! Normal Sextupole
 XNO__001  : SEXTUPOLE   , L := 0;         ! Normal Sextupole
 XSK       : SEXTUPOLE   , L := 0;         ! Skew sextupole
+XSK_0     : MULTIPOLE   ;                 ! Skew sextupole
 //---------------------- VKICKER        ---------------------------------------------
 DBSV      : VKICKER     , L := 0;         ! DBSV Vertical kicker for the beam scope, Dipoles Type I
 DSHAV     : VKICKER     , L := 0;         ! DSHAV Vertical Kicker type 1 (nominal current:10A), Shielding
