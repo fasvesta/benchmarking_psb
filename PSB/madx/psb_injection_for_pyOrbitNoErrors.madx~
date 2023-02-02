@@ -1,0 +1,216 @@
+
+/******************************************************************************************
+ *
+ * MAD-X File for PS Booster optics injection calculations
+ *
+ * Working point for injection : QX = 4.28 and QY = 4.45.
+ *
+ * This file is for protons at 0.57 GeV/c (160 MeV)
+ *
+ * Execute with:  
+ *      >/afs/cern.ch/eng/sl/MAD-X/pro/releases/5.02.00/madx-linux64 < psb_injection.madx
+ *
+ * for compatible PTC Version with PTC-pyORBIT in 
+ *
+ * /afs/cern.ch/user/p/pyorbit/public/PyOrbit_env/py-orbit/bin/pyORBIT
+ *
+ ******************************************************************************************/
+
+ title, 'PSB';
+
+ option, echo;
+ option, RBARC=FALSE;
+ setplot, post=2, font=4;
+
+/******************************************************************************************
+ * BOOSTER
+ ******************************************************************************************/
+ call, file = '../elements/psb.ele';
+ call, file = '../sequence/psb.seq';
+ call, file = '../aperture/psb.dbx';
+ call, file = '../strength/psb_orbit.str' ;
+ call, file = '../elements/sbends.ele'; 
+ call, file = '../cmd/psb2pyOrbit_macros.cmd';
+
+
+/******************************************************************************************
+ * beam, use
+ ******************************************************************************************/
+
+call, file = '../beam/psb_injection.beamx';
+
+use, sequence=psb1;
+
+set, format = "18.10e";
+
+/******************************************************************************************
+ * Match for new working point
+ ******************************************************************************************/
+
+MATCH,sequence=psb1;
+ vary, NAME=kKF, step = 0.0001;
+ vary, NAME=kKD, step = 0.0001;
+ constraint, range=#E, MUX=4.28, MUY=4.45;
+ lmdif, calls = 10000, tolerance = 1.0E-21;
+ENDMATCH;
+
+! Print results on file: match_injection.prt
+assign, echo="../output/match_injection.prt";
+print, text="match_injection";
+value,  kKF;
+value,  kKD;
+assign, echo=terminal;
+
+/******************************************************************************************
+ * TWISS
+ ******************************************************************************************/
+
+PSHIFT=0;
+
+/************************************************************
+ * MAD uses pt as the 5th variable NOT delta-p.
+ * The result is that all derivatives are with repect to pt.
+ * This is the reason for the non-standard dispersion values
+ * for non-relativistic machines, like the PSB
+ * Ax and Ay are the apertures in number of sigmas
+ ************************************************************/
+ beta=sqrt(1-1/beam->gamma^2);
+ disp:=beta*table(twiss,dx); ! Delta_x=disp*Delta_p/p;
+!hx:=table(twiss,aper_1);
+ hx := (table(twiss,aper_1)+table(twiss,aper_3)-abs(table(twiss,aper_1)-table(twiss,aper_3)))/2; ! MIN( aper_1, aper_3)
+ hy := (table(twiss,aper_2)+table(twiss,aper_4)-abs(table(twiss,aper_2)-table(twiss,aper_4)))/2; ! MIN( aper_2, aper_4)
+ sx := SQRT(table(twiss,betx)*beam->ex);
+ sy := SQRT(table(twiss,bety)*beam->ey);
+ option, -warn;
+ Ax := SQRT((hx^2-(3*disp*beam->sige)^2)/(table(twiss,betx)*beam->ex));
+ Ay := SQRT(hy^2/(table(twiss,bety)*beam->ey)); ! There is no dispersion in vertical plane
+ option, warn;
+
+select, flag=twiss, clear;
+select, flag=twiss, column=name, s,x,alfx,alfy,betx,bety,disp,apertype,aper_1,aper_2,aper_3,aper_4,hx,hy,sx,sy,Ax,Ay;
+
+twiss , centre
+      , DELTAP = PSHIFT
+      , table=TWISS
+      , file='../output/output_injection.outx';
+
+value, beam->ex, beam->ey,beam->sige, beam->sigt;
+value,table(TWISS,PSB1$START,betx);
+
+
+psb: sequence, l = 157.08, refer = entry;
+  psb1      , at = 0.0;
+endsequence;
+use, sequence=psb;
+
+/******************************************************************************************
+ * EDIT SEQUENCE TO FULFILL PTC REQUIREMENTS (see macros for more information)
+ * 
+ *  -) define cavity with no_cavity_totalpath
+ *	-) remove_elements(option)
+ *	   - 1  :  remove all markers, instruments and monitors, extraction bumpers, reinstall foil
+ *	   - 2  :  remove only defined classes (e.g. keep wire scanners)
+ * 	   - 3  :  remove markers, 
+ * 	   - 4  :  remove markers, instruments, monitors, extraction bumpers, reinstall foil,
+ *	      	   remove scrapers of dipoles and reduce dipole aperture
+ *  -) install fixed mask (large aperture)
+ *  -) remove mask with small aperture (optional)
+ ******************************************************************************************/
+
+
+
+save, sequence = psb, file = '../sequence/psb_new_modified.seq';
+call, file = '../sequence/psb_new_modified.seq';
+use, sequence=psb;
+option, warn, echo;
+
+/******************************************************************************************
+ * Match for desired working point
+ ******************************************************************************************/
+
+QH = 4.15;
+QV = 4.524;
+
+MATCH, Sequence=PSB;
+	VARY, NAME = kkf, STEP = 1e-3;
+	VARY, NAME = kkd, STEP = 1e-3;
+	GLOBAL, Q1 = QH;
+	GLOBAL, Q2 = QV;
+	JACOBIAN,CALLS=1000,TOLERANCE=1.0E-18,STRATEGY=3; !,COOL=real,BALANCE=real, random=real;
+ENDMATCH; 
+
+exec, ptc_twiss_macro;
+write, table=ptc_twiss, file='ptc_twiss.txt';
+
+SELECT, FLAG=PTC_TWISS, COLUMN=NAME, KEYWORD, L, S, BETX, BETY, ALFX, ALFY, Dispx, X, Y;
+MATCH, USE_MACRO;
+	VARY, NAME = kkf, STEP = 1e-6;
+	VARY, NAME = kkd, STEP = 1e-6;
+	USE_MACRO, name=ptc_twiss_macro;
+	CONSTRAINT, EXPR=Table(ptc_twiss, PSB$END, mu1) = QH;
+	CONSTRAINT, EXPR=Table(ptc_twiss, PSB$END, mu2) = QV;
+	LMDIF, TOLERANCE = 1.0E-18;
+ENDMATCH;  
+
+
+kBR1QNO816L1=  2*3.094e-4;
+
+select, flag=twiss, clear;
+select, flag=twiss, column=name, s,betx,bety,disp;
+twiss, sequence=psb, file= twiss_before;
+
+
+!MAKETHIN, SEQUENCE=psb, STYLE=SIMPLE;
+SELECT, FLAG=makethin, CLASS=QUADRUPOLE, THICK=false;
+SELECT, FLAG=makethin, CLASS=RBEND, THICK=false;
+SELECT, FLAG=makethin, CLASS=SBEND, THICK=false;
+!SELECT, FLAG=makethin, CLASS=RFCAVITY, THICK=true;
+MAKETHIN, SEQUENCE=psb, STYLE=SIMPLE;
+
+use, sequence=psb;
+
+select, flag=twiss, clear;
+select, flag=twiss, column=name, s,betx,bety,disp;
+twiss, sequence=psb, file= twiss_after1;
+
+
+seqedit, sequence = psb;
+flatten;
+markers : marker;
+t=0;
+circumference=table(twiss,PSB$END,s);
+nkicks=160;
+
+while (t<nkicks){
+      loc=circumference/nkicks*t;
+      install, element = markers,  at=loc;
+      t=t+1;
+      };
+flatten;
+endedit;
+
+
+
+use, sequence=psb;
+CAVFINEM	: RFCAVITY, L:= 1e-6, VOLT:= 0.008, HARMON = 1, LAG:= 0.0, no_cavity_totalpath;
+seqedit, sequence = psb;
+flatten;
+install, element = BR.C02, class=CAVFINEM, at=-1.8 ,from=BR.BHZ51;
+flatten;
+endedit;
+
+use, sequence=psb;
+
+MATCH, Sequence=PSB;
+	VARY, NAME = kkf, STEP = 1e-3;
+	VARY, NAME = kkd, STEP = 1e-3;
+	GLOBAL, Q1 = QH;
+	GLOBAL, Q2 = QV;
+	JACOBIAN,CALLS=1000,TOLERANCE=1.0E-18,STRATEGY=3; !,COOL=real,BALANCE=real, random=real;
+ENDMATCH; 
+
+select, flag=twiss, clear;
+select, flag=twiss, column=name, s,betx,bety,disp, alfx, alfy, gamax,gamay;
+twiss, sequence=psb, file= twiss_after;
+
+

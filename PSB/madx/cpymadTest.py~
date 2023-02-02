@@ -1,0 +1,247 @@
+import numpy as np
+
+from cpymad.madx import Madx
+from statisticalEmittance import *
+import time
+
+
+
+mad = Madx()
+mad.call('psb_injection_for_pyOrbitNoErrors.madx')
+
+import xtrack as xt
+import xpart as xp
+
+line= xt.Line.from_madx_sequence(mad.sequence['psb'])
+line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
+                               gamma0=mad.sequence.psb.beam.gamma)
+tracker = xt.Tracker(line=line)
+
+tw = tracker.twiss()
+mad.twiss()
+beta0 = line.particle_ref.beta0[0]
+print(f"Q'x (MAD)={mad.table.summ['dq1']*beta0} Q'x (Xsuite)={tw['dqx']}" )
+print(f"Q'y (MAD)={mad.table.summ['dq2']*beta0} Q'y (Xsuite)={tw['dqy']}" )
+
+#x_norm, y_norm, _, _ = xp.generate_2D_polar_grid(
+#    theta_range=(0.01, np.pi/2-0.01),
+#    ntheta = 20,
+#    r_range = (0.1, 5),
+#    nr = 30)
+
+# For FMA
+#particles = xp.build_particles(tracker=tracker, particle_ref=line.particle_ref,
+#                               x_norm=x_norm, y_norm=y_norm, delta=0,
+#                               scale_with_transverse_norm_emitt=(2e-6, 1e-6))
+
+#tracker.track(particles, num_turns=1000, turn_by_turn_monitor=True)
+#mon = tracker.record_last_track
+
+#p_df = particles.to_pandas()
+
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=1e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+#r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+#values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    #r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    #values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+#np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=2e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+#r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+#values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    #r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    #values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+#np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=2e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+#r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+#values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    #r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    #values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+#np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+
+
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=2e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+#np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=2e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+#np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+# For spacecharge
+p_gaussian = xp.generate_matched_gaussian_bunch(num_particles=500000,
+                            total_intensity_particles=5e11,
+                            nemitt_x=3e-6, nemitt_y=2e-6, sigma_z=20.,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker)
+
+start = time.time()
+
+g=p_gaussian.gamma0[0]
+b=p_gaussian.beta0[0]
+
+r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+values=[]
+values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+n_particles = []
+sigma_z = []
+for ii in range(10):
+    print(ii)
+    sigma_z.append(np.std(p_gaussian.zeta[p_gaussian.state>0]))
+    n_particles.append(np.sum(p_gaussian.state))
+    tracker.track(p_gaussian)
+    r=statisticalEmittance(x=p_gaussian.x,px=p_gaussian.px,y=p_gaussian.y,py=p_gaussian.py,z=p_gaussian.zeta,dp=p_gaussian.delta)
+    values.append([r.getNormalizedEmittanceX(b,g),r.getNormalizedEmittanceY(b,g),r.getBetaX(),r.getBetaY()])
+
+
+np.save('values_3_2_10',values)
+
+end = time.time()
+print(end - start)
+
+# # Check matching
+# x_norm_test = np.cos(np.linspace(0, 2*np.pi, 1000))
+# px_norm_test = np.sin(np.linspace(0, 2*np.pi, 1000))
+# particles_test = xp.build_particles(tracker=tracker, particle_ref=line.particle_ref,
+#                                x_norm=x_norm_test, px_norm=px_norm_test, delta=0,
+#                                scale_with_transverse_norm_emitt=(2e-6, 1e-6))
+
+np.save('datab3',p_gaussian.beta0)
+np.save('datag3',p_gaussian.gamma0)
+np.save('datad3',p_gaussian.delta)
+np.save('dataz3',p_gaussian.zeta)
+np.save('datay3',p_gaussian.y)
+np.save('datapy3',p_gaussian.py)
+np.save('datapx3',p_gaussian.px)
+np.save('datax3',p_gaussian.x)
