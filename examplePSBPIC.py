@@ -6,6 +6,7 @@ from statisticalEmittance import *
 # import json
 import xobjects as xo
 import xfields as xf
+from parabolic_longitudinal_distribution import parabolic_longitudinal_distribution
 
 ####################
 # Choose a context #
@@ -20,7 +21,7 @@ print(context)
 mad = Madx()
 mad.call('PSB/madx/psb_injection_example.madx')
 
-line= xt.Line.from_madx_sequence(mad.sequence['psb'])
+line= xt.Line.from_madx_sequence(mad.sequence['psb'],install_apertures=True)
 line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
                                gamma0=mad.sequence.psb.beam.gamma)
 
@@ -34,7 +35,7 @@ n_part = int(20e3)
 num_turns= int(150e3)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
-tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
+ol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
 
 # Available modes: frozen/quasi-frozen/pic
 mode = 'pic'#'frozen'
@@ -91,24 +92,32 @@ tracker_sc_off = tracker.filter_elements(exclude_types_starting_with='SpaceCh')
 # Generate particles #
 ######################
 
-particles = xp.generate_matched_gaussian_bunch(_context=context, num_particles=n_part,
+#particles = xp.generate_matched_gaussian_bunch(_context=context, num_particles=n_part,
+#                            total_intensity_particles=bunch_intensity,
+#                            nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
+#                            particle_ref=line.particle_ref,
+#                            tracker=tracker_sc_off)
+
+particles = parabolic_longitudinal_distribution(_context=context, num_particles=n_part,
                             total_intensity_particles=bunch_intensity,
                             nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
                             particle_ref=line.particle_ref,
                             tracker=tracker_sc_off)
 
-monitor = xt.ParticlesMonitor(_context=context,
-                              start_at_turn=0, stop_at_turn=1,
-                              n_repetitions=2,
-                              repetition_period=500,
-                              num_particles=n_part)
 
-r=StatisticalEmittance(context='GPU')
+#monitor = xt.ParticlesMonitor(_context=context,
+#                              start_at_turn=0, stop_at_turn=1,
+#                              n_repetitions=2,
+#                              repetition_period=500,
+#                              num_particles=n_part)
+
+r=StatisticalEmittance(context='CPU')
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
 #tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 output=[]
+
 for i in range(num_turns):
     tracker.track(particles)
     bunch_moments=r.measure_bunch_moments(particles)
