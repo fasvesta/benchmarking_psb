@@ -116,7 +116,7 @@ particles = parabolic_longitudinal_distribution(_context=context, num_particles=
 #                              repetition_period=500,
 #                              num_particles=n_part)
 
-r=StatisticalEmittance(context='CPU')
+r=StatisticalEmittance(context='GPU')
 bunch_moments=r.measure_bunch_moments(particles)
 print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
