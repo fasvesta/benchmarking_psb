@@ -34,6 +34,8 @@ br.bhz52: mbhgc4wp,angle:=kb1 ,aperture:={ 6.5350000000e-02, 3.0900000000e-02, 6
 br.bhz61: mbhgc4wp,angle:=kb1 ,aperture:={ 6.5350000000e-02, 3.0900000000e-02, 6.5350000000e-02, 4.8000000000e-02},apertype="rectellipse";
 br.qfo61: mqnec4wp,k1:=kkf ,aperture:={ 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02},apertype="rectellipse";
 br.qde6: mqnfa4wp,k1:=kkd ,aperture:={ 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02},apertype="rectellipse";
+xsk_0: multipole;
+br1.xsk6l4: xsk_0,slot_id:= 2459114,assembly_id:= 2452469;
 br.qfo62: mqnec4wp,k1:=kkf ,aperture:={ 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02, 5.7000000000e-02},apertype="rectellipse";
 br.bhz62: mbhgc4wp,angle:=kb1 ,aperture:={ 6.5350000000e-02, 3.0900000000e-02, 6.5350000000e-02, 4.8000000000e-02},apertype="rectellipse";
 br.bhz71: mbhgc4wp,angle:=kb1 ,aperture:={ 6.5350000000e-02, 3.0900000000e-02, 6.5350000000e-02, 4.8000000000e-02},apertype="rectellipse";
@@ -123,6 +125,7 @@ br.bhz52, at = 4.8278652500e+01;
 br.bhz61, at = 5.2550349500e+01;
 br.qfo61, at = 5.3977297000e+01;
 br.qde6, at = 5.5322297000e+01;
+br1.xsk6l4: xsk_0, at = 5.6089311000e+01,slot_id:= 2459114,assembly_id:= 2452469;
 br.qfo62, at = 5.6668297000e+01;
 br.bhz62, at = 5.8096152500e+01;
 br.bhz71, at = 6.2367849500e+01;
