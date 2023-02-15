@@ -7,7 +7,7 @@ def parabolic_longitudinal_distribution(_context=None, num_particles=None,
                 nemitt_x=None, nemitt_y=None, sigma_z=None,
                 particle_ref=None, tracker=None, total_intensity_particles=None):
 
-    zeta, delta = generate_longitudinal_coordinates(distribution='gaussian', 
+    zeta, delta = generate_longitudinal_coordinates(distribution='parabolic', 
                 num_particles=num_particles, 
                 engine='single-rf-harmonic', sigma_z=sigma_z,
                                                     particle_ref=particle_ref, tracker=tracker)
