@@ -3,7 +3,7 @@ from cpymad.madx import Madx
 import xtrack as xt
 import xpart as xp
 from statisticalEmittance import *
-# import json
+import json
 import xobjects as xo
 import xfields as xf
 from parabolic_longitudinal_distribution import parabolic_longitudinal_distribution
@@ -29,6 +29,9 @@ mad.call('PSB/madx/psb_injection_example.madx')
 line= xt.Line.from_madx_sequence(mad.sequence['psb'],install_apertures=True)
 line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
                                gamma0=mad.sequence.psb.beam.gamma)
+
+with open('line_and_particle.json', 'w') as fid:
+    json.dump(line.to_dict(), fid, cls=xo.JEncoder)
 
 nemitt_x=3e-6
 nemitt_y=2.3e-6
@@ -97,17 +100,17 @@ tracker_sc_off = tracker.filter_elements(exclude_types_starting_with='SpaceCh')
 # Generate particles #
 ######################
 
-particles = xp.generate_matched_gaussian_bunch(_context=context, num_particles=n_part,
-                            total_intensity_particles=bunch_intensity,
-                            nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
-                            particle_ref=line.particle_ref,
-                            tracker=tracker_sc_off)
-
-#particles = parabolic_longitudinal_distribution(_context=context, num_particles=n_part,
+#particles = xp.generate_matched_gaussian_bunch(_context=context, num_particles=n_part,
 #                            total_intensity_particles=bunch_intensity,
 #                            nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
 #                            particle_ref=line.particle_ref,
 #                            tracker=tracker_sc_off)
+
+particles = parabolic_longitudinal_distribution(_context=context, num_particles=n_part,
+                            total_intensity_particles=bunch_intensity,
+                            nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
+                            particle_ref=line.particle_ref,
+                            tracker=tracker_sc_off)
 
 
 #monitor = xt.ParticlesMonitor(_context=context,
@@ -122,7 +125,7 @@ print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
 output=[]
 start = time.time()
-np.save('distribution_in_hi_g', r.coordinate_matrix)
+#np.save('distribution_in_hi_g', r.coordinate_matrix)
 '''
 #tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 for i in range(num_turns):
