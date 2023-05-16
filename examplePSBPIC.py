@@ -24,7 +24,8 @@ with open('PSB/madx/tune.madx', 'w') as f:
     f.write('Qy=4.'+str(sys.argv[1])+';')   
 
 mad = Madx()
-mad.call('PSB/madx/psb_injection_example.madx')
+mad.call('psb_thin_flat_bottom.seq')
+mad.use('psb')
 
 line= xt.Line.from_madx_sequence(mad.sequence['psb'],install_apertures=True)
 line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
@@ -33,14 +34,14 @@ line.particle_ref=xp.Particles(mass0=xp.PROTON_MASS_EV,
 with open('line_and_particle.json', 'w') as fid:
     json.dump(line.to_dict(), fid, cls=xo.JEncoder)
 
-nemitt_x=3e-6
-nemitt_y=2.3e-6
+nemitt_x=2.5e-6
+nemitt_y=2e-6
 bunch_intensity=55e10
-sigma_z=16.9#15.85*0.67#
+sigma_z=18.95#15.85*0.67#
 n_part = int(200e3)
 
 # from space charge example
-num_turns= int(1)
+num_turns= int(2)
 
 num_spacecharge_interactions = 160 # is this interactions per turn?
 tol_spacecharge_position = 1e-2 # is this the minimum/maximum space between sc elements?
@@ -84,7 +85,8 @@ elif mode == 'pic':
         n_sigmas_range_pic_y=8,
         nx_grid=128, ny_grid=128, nz_grid=64,
         n_lims_x=7, n_lims_y=3,
-        z_range=(-3*sigma_z, 3*sigma_z))
+        z_range=(-3*sigma_z, 3*sigma_z), 
+        _average_transverse_distribution=True)
 else:
     raise ValueError(f'Invalid mode: {mode}')
 
@@ -92,9 +94,11 @@ else:
 # Build Tracker #
 #################
 
-tracker = xt.Tracker(_context=context,
-                    line=line)
-tracker_sc_off = tracker.filter_elements(exclude_types_starting_with='SpaceCh')
+line.build_tracker(_context=context)
+line_sc_off = line.filter_elements(exclude_types_starting_with='SpaceCh')
+# tracker = xt.Tracker(_context=context,
+#                     line=line)
+# tracker_sc_off = tracker.filter_elements(exclude_types_starting_with='SpaceCh')
 
 ######################
 # Generate particles #
@@ -110,7 +114,7 @@ particles = parabolic_longitudinal_distribution(_context=context, num_particles=
                             total_intensity_particles=bunch_intensity,
                             nemitt_x=nemitt_x, nemitt_y=nemitt_y, sigma_z=sigma_z,
                             particle_ref=line.particle_ref,
-                            tracker=tracker_sc_off)
+                            line=line_sc_off)
 
 
 #monitor = xt.ParticlesMonitor(_context=context,
@@ -125,11 +129,11 @@ print(bunch_moments['nemitt_x'])
 print(bunch_moments['nemitt_y'])
 output=[]
 start = time.time()
-#np.save('distribution_in_hi_g', r.coordinate_matrix)
-'''
+np.save('distribution_thin_seq', r.coordinate_matrix)
+''
 #tracker.track(particles, num_turns=num_turns, turn_by_turn_monitor=monitor)
 for i in range(num_turns):
-    tracker.track(particles)
+    line.track(particles)
     bunch_moments=r.measure_bunch_moments(particles)
     output.append([len(r.coordinate_matrix[0]),bunch_moments['nemitt_x'].tolist(),bunch_moments['nemitt_y'].tolist(),bunch_moments['emitt_z'].tolist()])
     #if i in range(-1, num_turns, 1000):
@@ -144,5 +148,5 @@ print('epsn_y = ',bunch_moments['nemitt_y'])
 print('eps_z = ',bunch_moments['emitt_z'])
 print('time = ', end - start)
 ouput=np.array(output)
-#np.save('output/emittances', output)
-'''
+np.save('output/emittances', output)
+''
