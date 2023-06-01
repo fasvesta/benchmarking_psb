@@ -5,10 +5,7 @@
 source /usr/local/xsuite/miniforge3/bin/activate xsuite
 pwd
 
-cp -r /afs/cern.ch/work/f/fasvesta/benchmarking_psb/PSB .
-cp /afs/cern.ch/work/f/fasvesta/benchmarking_psb/*.py .
-mkdir output
+cp -r /afs/cern.ch/work/f/fasvesta/benchmarking_psb_3Qy/PSB .
+cp /afs/cern.ch/work/f/fasvesta/benchmarking_psb_3Qy/*.py .
 
-python examplePSBPIC.py 524
-mkdir /eos/user/f/fasvesta/benchmarking_psb/output_524
-xrdcp output/* root://eosuser.cern.ch//eos/user/f/fasvesta/benchmarking_psb/output_524/.
+python examplePSBPIC_4.py 37
