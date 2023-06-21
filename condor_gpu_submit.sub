@@ -8,7 +8,7 @@ transfer_output_files   = ""
 +SingularityImage = "/cvmfs/unpacked.cern.ch/gitlab-registry.cern.ch//fasvesta/space-charge-docker-image:latest"
 on_exit_remove = (ExitBySignal == False) && (ExitCode == 0)
 max_retries = 0
-requirements = Machine =!= LastRemoteHost && regexp("V100", Target.CUDADeviceName)
+requirements = Machine =!= LastRemoteHost && regexp("100", Target.CUDADeviceName)
 request_GPUs = 1
 request_CPUs = 1
 +MaxRunTime = 200000
